@@ -76,7 +76,7 @@ def validate_age(record):
     if record["Age"].strip() != "":
         try:
             age = int(record["Age"])
-            if not 18 < age < 70:
+            if not 18 < age < 65:
                 valid = False
         except ValueError:
             valid = False
@@ -108,9 +108,6 @@ def validate_date(record):
         valid = False
     return valid
 
-def seperate_records(records):
-    pass
-
 def write_cleaned_csv(correct):
     with open("data/cleaned/cleaned.csv","w",newline="") as file:
         writer = csv.DictWriter(file,fieldnames=["Employee_ID","Employee_Name","Age","Country","Department","Position","Salary","Joining_Date"])
@@ -126,17 +123,18 @@ def write_rejected_csv(incorrect):
                 writer.writerow(row)
 
 def invalid_data_report(data):
+    valid_records,invalid_records,missing_employee_id,missing_employee_name,missing_employee_department,invalid_age,invalid_salary,invalid_date,duplicate_employee_id = data
     print("Validation report")
     print("------------------")
-    print("Valid Records:",len(data[0]))
-    print("Invalid Records:",len(data[1]))
-    print("Missing Employee IDs:",data[2])
-    print("Missing Employee Name:",data[3])
-    print("Missing Employee Department:",data[4])
-    print("Invalid Age:",data[5])
-    print("Invalid Salary:",data[6])
-    print("Invalid Date Format:",data[7])
-    print("Duplicate Employee IDs",data[8])
+    print("Valid Records:",len(valid_records))
+    print("Invalid Records:",len(invalid_records))
+    print("Missing Employee IDs:",missing_employee_id)
+    print("Missing Employee Name:",missing_employee_name)
+    print("Missing Employee Department:",missing_employee_department)
+    print("Invalid Age:",invalid_age)
+    print("Invalid Salary:",invalid_salary)
+    print("Invalid Date Format:",invalid_date)
+    print("Duplicate Employee IDs",duplicate_employee_id)
 
 def main():
     records=load_data()

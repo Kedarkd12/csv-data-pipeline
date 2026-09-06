@@ -1,7 +1,7 @@
 -- 1: Average salary by department
 SELECT 
 	department,
-	AVG(salary) AS avgsal
+	ROUND(AVG(salary)::numeric,2) AS avgsal
 FROM employees
 GROUP BY department
 ORDER BY avgsal DESC;
@@ -43,7 +43,7 @@ ORDER BY Year
 SELECT
 	department, 
 	MIN(salary) AS minimum_salary,
-	AVG(salary) AS average_salary, 
+	ROUND(AVG(salary)::numeric,2) AS average_salary, 
 	MAX(salary) AS maximum_salary
 FROM employees
 GROUP BY department

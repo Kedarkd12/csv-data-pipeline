@@ -1,6 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 import psycopg2
+import os
 import logging
 
 logging.basicConfig(
@@ -11,7 +12,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-conn_string = "postgresql://postgres:0614@localhost:5432/employees"
+conn_string = os.getenv("DATABASE_URL")
 engine = create_engine(conn_string)
 
 def load_data():

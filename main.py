@@ -1,154 +1,93 @@
-import csv
-import datetime
+import pandas as pd
+from sqlalchemy import create_engine
+import psycopg2
+import logging
+
+logging.basicConfig(
+    filename="logs/pipeline.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
+conn_string = "postgresql://postgres:0614@localhost:5432/employees"
+engine = create_engine(conn_string)
 
 def load_data():
-    employees=[]
-
-    with open("data/raw/employee_records.csv") as file:
-        reader=csv.DictReader(file)
-        for row in reader:
-            employees.append(row)
+    logger.info("Reading employee_records.csv")
+    employees = pd.read_csv("data/raw/employee_records.csv")
+    logger.info("Extracted %d records", len(employees))
+    employees = employees.replace(r"^\s*$", pd.NA, regex=True)
+    employees["Salary"]=pd.to_numeric(employees["Salary"],errors="coerce")
+    employees["Age"]=pd.to_numeric(employees["Age"],errors="coerce")
+    logger.info("Data cleaning and type conversion completed")
     return employees
 
-def validate_data(records):
-    invalid_records=[]
-    valid_records=[]
-    seen_ids=set()
-    missing_employee_id=0
-    duplicate_employee_id=0
-    missing_employee_name=0
-    missing_employee_department=0
-    invalid_age=0
-    invalid_salary=0
-    invalid_date=0
-    for record in records:
-        if record["Employee_ID"] not in seen_ids:
-            seen_ids.add(record["Employee_ID"])
-            duplicate_eid=False
-        else:
-            duplicate_employee_id+=1
-            duplicate_eid = True
-        eid = validate_id(record)
-        if eid == False:
-            missing_employee_id+=1
-        name = validate_name(record)
-        if name == False:
-            missing_employee_name+=1
-        dept = validate_department(record)
-        if dept == False:
-            missing_employee_department+=1
-        age = validate_age(record)
-        if age == False:
-            invalid_age+=1
-        salary = validate_salary(record)
-        if salary == False:
-            invalid_salary+=1
-        date = validate_date(record)
-        if date == False:
-            invalid_date+=1
-        if not duplicate_eid and eid and name and dept and age and salary and date == True:
-            valid_records.append(record)
-        else:
-            invalid_records.append(record)
-    return valid_records,invalid_records,missing_employee_id,missing_employee_name,missing_employee_department,invalid_age,invalid_salary,invalid_date,duplicate_employee_id
+def duplicate_data(data):
+    print("Duplicate Employee ID:",data["Employee_ID"].duplicated().sum())
 
-def validate_id(record):
-    valid = True
-    e_id = record["Employee_ID"].strip()
-    if e_id == "":
-        valid = False
-    return valid
+def missing_data(data):
+    print("Missing Employee ID:",data["Employee_ID"].isna().sum())
+    print("Missing Employee Name:",data["Employee_Name"].isna().sum())
+    print("Missing Employee Department:",data["Department"].isna().sum())
+    data["Joining_Date"]=pd.to_datetime(data["Joining_Date"],format="%Y-%m-%d",errors="coerce")
+    print("Invalid or Missing Joining Date:",data["Joining_Date"].isna().sum())
 
-def validate_name(record):
-    valid = True
-    if record["Employee_Name"].strip() == "":
-        valid = False
-    return valid
 
-def validate_department(record):
-    valid = True
-    if record["Department"].strip() == "":
-        valid = False
-    return valid
+def invalid_data(data):
+    data["Age"]=data["Age"].apply(lambda x:pd.NA if x<18 or x>65 else x)
+    print("Invalid or Missing Age:",data["Age"].isna().sum())
+    data["Salary"]=data["Salary"].astype(float)
+    data["Salary"]=data["Salary"].apply(lambda x:pd.NA if x<0 else x)
+    print("Invalid or Missing salaries:",data["Salary"].isna().sum())
 
-def validate_age(record):
-    valid = True
-    if record["Age"].strip() != "":
-        try:
-            age = int(record["Age"])
-            if not 18 < age < 65:
-                valid = False
-        except ValueError:
-            valid = False
-    else:
-        valid = False
-    return valid
+def write_data(data):
+    invalid = data[data.isna().any(axis=1) | data["Employee_ID"].duplicated(keep="first")]
+    valid = data[~(data.isna().any(axis=1) | data["Employee_ID"].duplicated(keep="first"))]
+    logger.info("Valid records: %d", len(valid))
+    logger.info("Rejected records: %d", len(invalid))
+    invalid.to_csv("data/rejected/rejected.csv",index=False)
+    logger.info("Rejected CSV written successfully")
+    valid=valid.drop(columns=["Rejection_Reason"])
+    valid.columns=valid.columns.str.lower()
+    valid.to_csv("data/cleaned/cleaned.csv",index=False)
+    logger.info("Cleaned CSV written successfully")
+    valid.to_sql("employees",engine,if_exists="replace",index=False)
+    logger.info("Data Loaded to PostgreSQL successfully")
+    print("Valid Records:",len(valid))
+    print("Invalid Records:",len(invalid))
+    print("Data Loaded to PostgreSQL successfully.")
 
-def validate_salary(record):
-    valid = True
-    if record["Salary"].strip() != "":
-        try:
-            salary = float(record["Salary"])
-            if salary <= 0:
-                valid = False
-        except ValueError:
-            valid = False
-    else:
-        valid = False
-    return valid
-
-def validate_date(record):
-    valid = True
-    if record["Joining_Date"].strip() != "":
-        try:
-            join_date = datetime.date.fromisoformat(record["Joining_Date"])
-        except ValueError:
-            valid = False
-    else:
-        valid = False
-    return valid
-
-def write_cleaned_csv(correct):
-    with open("data/cleaned/cleaned.csv","w",newline="") as file:
-        writer = csv.DictWriter(file,fieldnames=["Employee_ID","Employee_Name","Age","Country","Department","Position","Salary","Joining_Date"])
-        writer.writeheader()
-        for row in correct:
-            writer.writerow(row)
-
-def write_rejected_csv(incorrect):
-    with open("data/rejected/rejected.csv","w",newline="") as file:
-            writer = csv.DictWriter(file,fieldnames=["Employee_ID","Employee_Name","Age","Country","Department","Position","Salary","Joining_Date"])
-            writer.writeheader()
-            for row in incorrect:
-                writer.writerow(row)
-
-def invalid_data_report(data):
-    valid_records,invalid_records,missing_employee_id,missing_employee_name,missing_employee_department,invalid_age,invalid_salary,invalid_date,duplicate_employee_id = data
-    print("Validation report")
-    print("------------------")
-    print("Valid Records:",len(valid_records))
-    print("Invalid Records:",len(invalid_records))
-    print("Missing Employee IDs:",missing_employee_id)
-    print("Missing Employee Name:",missing_employee_name)
-    print("Missing Employee Department:",missing_employee_department)
-    print("Invalid Age:",invalid_age)
-    print("Invalid Salary:",invalid_salary)
-    print("Invalid Date Format:",invalid_date)
-    print("Duplicate Employee IDs",duplicate_employee_id)
+def reports(data):
+    data["Rejection_Reason"]=""
+    data.loc[data["Employee_ID"].isna(),"Rejection_Reason"]+="Missing Employee ID ; " 
+    data.loc[data["Employee_Name"].isna(),"Rejection_Reason"]+="Missing Employee Name ; "
+    data.loc[data["Department"].isna(),"Rejection_Reason"]+="Missing Employee Department ; "
+    data.loc[data["Age"].isna(),"Rejection_Reason"]+="Missing Employee Age ; "
+    data.loc[data["Age"]<18,"Rejection_Reason"]+="Invalid Age:Too Young ; "
+    data.loc[data["Age"]>65,"Rejection_Reason"]+="Invalid Age:Too Old ; "
+    data.loc[data["Salary"].isna(),"Rejection_Reason"]+="Missing Employee Salary ; "
+    data.loc[data["Salary"]<0,"Rejection_Reason"]+="Invalid Employee Salary ; "
+    data.loc[data["Joining_Date"].isna(),"Rejection_Reason"]+="Missing/Invalid Joining Date ; "
+    data.loc[data["Employee_ID"].duplicated(keep="first"),"Rejection_Reason"]+="Duplicate Employee ID ; "
+    return data["Rejection_Reason"]
 
 def main():
-    records=load_data()
-    data = validate_data(records)
-    correct_data = data[0]
-    incorrect_data = data[1]
-    invalid_data_report(data)
-    write_cleaned_csv(correct_data)
-    write_rejected_csv(incorrect_data)
+    logger.info("========== ETL PIPELINE STARTED ==========")
+    data=load_data()
+    missing_data(data)
+    reports(data)
+    invalid_data(data)
+    duplicate_data(data)
+    write_data(data)
+    logger.info("========== ETL PIPELINE COMPLETED ==========")
 
 """#debugging
-    print(len(records))
-    for employee in records[:5]:
-        print(employee, end="\n\n")
+    print(employees.head(5))
+    employees.info()
+    print(employees.shape)
+    print(employees.describe())
 """
 
 if __name__=="__main__":

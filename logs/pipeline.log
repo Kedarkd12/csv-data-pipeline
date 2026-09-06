@@ -1,0 +1,10 @@
+2026-09-06 21:48:56,667 - INFO - ========== ETL PIPELINE STARTED ==========
+2026-09-06 21:48:56,667 - INFO - Reading employee_records.csv
+2026-09-06 21:48:56,720 - INFO - Extracted 30000 records
+2026-09-06 21:48:56,871 - INFO - Data cleaning and type conversion completed
+2026-09-06 21:48:56,949 - INFO - Valid records: 29988
+2026-09-06 21:48:56,949 - INFO - Rejected records: 12
+2026-09-06 21:48:56,949 - INFO - Rejected CSV written successfully
+2026-09-06 21:48:57,038 - INFO - Cleaned CSV written successfully
+2026-09-06 21:48:58,457 - INFO - Data Loaded to PostgreSQL successfully
+2026-09-06 21:48:58,458 - INFO - ========== ETL PIPELINE COMPLETED ==========

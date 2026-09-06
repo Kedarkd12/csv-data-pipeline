@@ -1,1 +1,13 @@
-Employee_ID,Employee_Name,Age,Country,Department,Position,Salary,Joining_Date
+Employee_ID,Employee_Name,Age,Country,Department,Position,Salary,Joining_Date,Rejection_Reason
+1,Ethan Brown,44.0,India,Marketing,Executive,98549.2,2018-01-13,Duplicate Employee ID ; 
+,Sophia Martinez,51.0,Japan,,Developer,85565.84,2015-04-30,Missing Employee ID ; Missing Employee Department ; 
+5,,56.0,Australia,Support,Consultant,48754.54,2019-02-22,Missing Employee Name ; 
+6,Ava Moore,35.0,Japan,HR,Executive,,2018-09-29,Missing Employee Salary ; 
+7,Mason Brown,,UK,Finance,Assistant,58227.95,2021-08-24,Missing Employee Age ; 
+9,Sophia Wilson,,Brazil,Marketing,Developer,126394.86,2018-12-20,Invalid Age:Too Young ; 
+11,Lily Brown,,Australia,Support,Analyst,52673.56,2024-08-22,Invalid Age:Too Young ; 
+12,Emma Moore,,Canada,HR,Consultant,65475.24,2016-11-20,Invalid Age:Too Old ; 
+14,Mason Hernandez,34.0,Mexico,,Executive,144619.82,2017-11-12,Missing Employee Department ; 
+15,Ava Hernandez,47.0,Mexico,Sales,Assistant,,2021-09-07,Invalid Employee Salary ; 
+16,Lily Taylor,42.0,Brazil,Marketing,Consultant,67741.4,,Missing/Invalid Joining Date ; 
+18,Daniel Anderson,44.0,Canada,Engineering,Consultant,113240.58,,Missing/Invalid Joining Date ; 

@@ -1,69 +1,59 @@
-# Employee Data ETL & Validation Pipeline
+# Employee Data ETL & HR Analytics Dashboard
 
 ## Overview
 
-This project is an end-to-end **ETL (Extract, Transform, Load) pipeline** built using Python, Pandas and PostgreSQL.
+This project is an end-to-end **ETL (Extract, Transform, Load) and analytics pipeline** built using Python, Pandas, PostgreSQL and Power BI.
 
-The pipeline extracts employee data from a CSV file, cleans and validates the data, identifies invalid records and their rejection reasons, generates cleaned and rejected datasets, loads valid records into PostgreSQL, and performs SQL-based analysis.
+The pipeline extracts employee data from a CSV file, cleans and validates the records, identifies invalid data and rejection reasons, loads valid records into PostgreSQL, performs analytical SQL queries, and presents the results through an interactive HR Analytics dashboard.
 
-The project demonstrates a practical data engineering workflow from **raw data ingestion to database loading and analytical reporting**.
-
----
-
-## ETL Pipeline
-
-```text
-Raw CSV
-   │
-   ▼
-Extract
-(Pandas)
-   │
-   ▼
-Transform
-(Cleaning & Type Conversion)
-   │
-   ▼
-Validate
-(Data Quality Checks)
-   │
-   ├──────────────► Rejected Records
-   │                 + Rejection Reasons
-   │
-   ▼
-Cleaned Dataset
-   │
-   ├──────────────► cleaned.csv
-   │
-   ▼
-PostgreSQL
-   │
-   ▼
-SQL Analysis
-   │
-   ▼
-Analysis Report
-```
+The project demonstrates a practical workflow from **raw data ingestion to data cleaning, database loading, analytical SQL, data modeling and business intelligence reporting**.
 
 ---
 
-## Features
+## Architecture
+
+    Raw CSV
+        ↓
+    Python / Pandas
+        ↓
+    Cleaning & Validation
+        ↓
+    ┌─────────────────────┐
+    │                     │
+    Valid Records      Rejected Records
+        │                     │
+        ↓                     ↓
+    PostgreSQL           rejected.csv
+        │
+        ↓
+    SQL Analysis
+        │
+        ↓
+    Power BI
+        │
+        ↓
+    HR Analytics Dashboard
+
+---
+
+## Key Features
 
 - Extracts employee data from CSV using Pandas
 - Handles missing and blank values
-- Converts numeric columns to appropriate data types
-- Parses and validates joining dates
-- Validates employee IDs, names and departments
-- Validates employee age
-- Validates employee salary
-- Detects duplicate employee IDs
-- Records specific rejection reasons for invalid records
+- Converts numeric and date columns
+- Validates employee IDs, names, departments, age, salary and joining dates
+- Detects duplicate Employee IDs
+- Generates record-level rejection reasons
 - Separates valid and rejected records
-- Exports cleaned and rejected CSV files
+- Exports cleaned and rejected datasets
 - Loads valid records into PostgreSQL
-- Performs analytical queries using PostgreSQL
-- Generates an analysis report from SQL results
-- Maintains pipeline logs
+- Performs analytical SQL queries
+- Uses CTEs, subqueries and window functions
+- Builds a star-schema data model in Power BI
+- Uses surrogate keys and a date dimension
+- Creates DAX measures and KPI cards
+- Provides an interactive HR Analytics dashboard
+- Maintains pipeline execution logs
 
 ---
 
@@ -78,48 +68,49 @@ Analysis Report
 | Salary | Must be present and non-negative |
 | Joining Date | Must be a valid date in `YYYY-MM-DD` format |
 
-Invalid records are stored separately along with the reason they were rejected.
+Invalid records are stored separately along with their corresponding rejection reasons.
 
 ---
 
 ## Project Structure
 
-```text
-employee-etl-pipeline/
-│
-├── data/
-│   ├── raw/
-│   │   └── employee_records.csv
-│   ├── cleaned/
-│   │   └── cleaned.csv
-│   └── rejected/
-│       └── rejected.csv
-│
-├── logs/
-│   └── pipeline.log
-│
-├── sql/
-│   └── analysis.sql
-│
-├── reports/
-│   └── analysis_results.md
-│
-├── main.py
-├── requirements.txt
-├── README.md
-└── .gitignore
-```
+    employee-etl-pipeline/
+    │
+    ├── data/
+    │   ├── raw/
+    │   ├── cleaned/
+    │   └── rejected/
+    │
+    ├── logs/
+    │   └── pipeline.log
+    │
+    ├── sql/
+    │   └── analysis.sql
+    │
+    ├── reports/
+    │   └── analysis_results.md
+    │
+    ├── powerbi/
+    │   └── HR_Analytics_Dashboard.pbix
+    │
+    ├── main.py
+    ├── requirements.txt
+    ├── README.md
+    └── .gitignore
 
 ---
 
 ## Technologies Used
 
-- **Python 3**
+- **Python 3** – ETL pipeline development
 - **Pandas** – data extraction, cleaning and transformation
+- **PostgreSQL** – database storage and SQL analysis
 - **SQLAlchemy** – database connectivity
 - **psycopg2** – PostgreSQL connection
-- **PostgreSQL** – data storage and SQL analysis
 - **SQL** – analytical queries
+- **Power Query** – data transformation and modeling
+- **Power BI** – visualization and dashboard development
+- **DAX** – analytical measures and KPIs
 - **Git & GitHub** – version control
 
 ---
@@ -128,56 +119,42 @@ employee-etl-pipeline/
 
 Clone the repository:
 
-```bash
-git clone <repository-url>
-cd employee-etl-pipeline
-```
+    git clone <repository-url>
+    cd employee-etl-pipeline
 
 Install the required dependencies:
 
-```bash
-pip install -r requirements.txt
-```
+    pip install -r requirements.txt
 
 ### Requirements
 
-```text
-pandas
-SQLAlchemy
-psycopg2-binary
-```
+    pandas
+    SQLAlchemy
+    psycopg2-binary
 
 ---
 
 ## PostgreSQL Setup
 
-Create a PostgreSQL database for the project.
+Create a PostgreSQL database:
 
-Example:
-
-```sql
-CREATE DATABASE employees;
-```
+    CREATE DATABASE employees;
 
 Configure the database connection in `main.py`.
 
-For a real deployment, database credentials should be stored in environment variables rather than directly in the source code.
+For production environments, database credentials should be stored using environment variables rather than directly in the source code.
 
 ---
 
 ## Running the Pipeline
 
-Place the raw CSV file inside:
+Place the raw dataset inside:
 
-```text
-data/raw/employee_records.csv
-```
+    data/raw/employee_records.csv
 
-Run:
+Run the pipeline:
 
-```bash
-python main.py
-```
+    python main.py
 
 The pipeline will:
 
@@ -187,7 +164,7 @@ The pipeline will:
 4. Validate the records.
 5. Generate rejection reasons.
 6. Separate valid and rejected records.
-7. Save the resulting CSV files.
+7. Save the cleaned and rejected datasets.
 8. Load valid records into PostgreSQL.
 9. Log the pipeline execution.
 
@@ -197,182 +174,189 @@ The pipeline will:
 
 ### Cleaned Data
 
-```text
-data/cleaned/cleaned.csv
-```
+    data/cleaned/cleaned.csv
 
 Contains records that successfully passed all validation rules.
 
 ### Rejected Data
 
-```text
-data/rejected/rejected.csv
-```
+    data/rejected/rejected.csv
 
 Contains invalid records along with their corresponding rejection reasons.
 
 ### Pipeline Logs
 
-```text
-logs/pipeline.log
-```
+    logs/pipeline.log
 
 Contains information about pipeline execution, processing stages and errors.
 
 ---
 
-## PostgreSQL Data
+## PostgreSQL
 
-Valid employee records are loaded into the PostgreSQL table:
-
-```text
-employees
-```
+Valid employee records are loaded into the `employees` table.
 
 The table contains:
 
-```text
-employee_id
-employee_name
-department
-age
-salary
-joining_date
-```
+    employee_id
+    employee_name
+    department
+    age
+    salary
+    joining_date
 
 ---
 
 ## SQL Analysis
 
-The loaded PostgreSQL data is analyzed using SQL.
+The PostgreSQL data is analyzed using SQL queries covering:
 
-The analysis includes:
+- Average salary by department
+- Top 10 highest-paid employees
+- Salary ranking within departments
+- Employees hired per year
+- Salary comparison by department
+- Employees earning above the overall average salary
+- Top 20% earners by department
+- Duplicate Employee ID detection
 
-1. Average salary by department
-2. Top 10 highest-paid employees
-3. Salary ranking within each department
-4. Employees hired per year
-5. Salary comparison by department
-6. Employees earning above the overall average salary
-7. Top 20% earners in each department
-8. Duplicate employee ID detection
+SQL queries are available in:
 
-The SQL queries are available in:
+    sql/analysis.sql
 
-```text
-sql/analysis.sql
-```
+The analysis results and observations are documented in:
 
-The results and key observations are documented in:
+    reports/analysis_results.md
 
-```text
-reports/analysis_results.md
-```
+---
+
+## Power BI Data Model
+
+The PostgreSQL employee data is modeled in Power BI using a **star-schema approach**.
+
+    dim_employee
+         │
+         │
+    dim_department ── fact_employee ── dim_position
+                         │
+                         │
+                    dim_country
+                         │
+                         │
+                      dim_date
+
+### Dimension Tables
+
+- `dim_employee`
+- `dim_department`
+- `dim_position`
+- `dim_country`
+- `dim_date`
+
+### Fact Table
+
+- `fact_employee`
+
+The fact table contains the keys connecting the dimension tables along with employee salary data.
+
+The model uses **surrogate keys** to establish relationships between fact and dimension tables.
+
+A continuous date dimension was created based on the employee joining-date range and includes:
+
+- Date Key
+- Full Date
+- Day
+- Month
+- Month Name
+- Quarter
+- Year
+
+---
+
+## Power BI Dashboard
+
+The project includes an interactive **HR Analytics Dashboard**.
+
+### KPI Cards
+
+- Total Employees
+- Average Salary
+- Total Salary
+- Maximum Salary
+- Average Age
+
+### Visualizations
+
+- Employees by Department
+- Employees by Position
+- Average Salary by Department
+- Employee Count Trend
+- Employees by Country
+
+### Filters
+
+- Year
+- Department
+- Position
+- Country
+
+The dashboard allows users to interactively explore employee distribution, salary patterns and workforce trends.
 
 ---
 
 ## Key Data Engineering Concepts Demonstrated
 
-### Extract
-- Reading raw CSV data
-- Handling source data using Pandas
+### ETL
 
-### Transform
-- Handling missing values
-- Data type conversion
-- Date parsing
+- Data extraction
 - Data cleaning
+- Data transformation
 - Data validation
-- Rejection reason generation
-
-### Load
-- Writing cleaned and rejected datasets
-- Loading validated data into PostgreSQL
+- Database loading
 
 ### Data Quality
+
 - Missing-value detection
 - Range validation
 - Duplicate detection
 - Invalid date detection
 - Record-level rejection tracking
 
+### Data Modeling
+
+- Fact and dimension tables
+- Star schema
+- Surrogate keys
+- Date dimension
+- Fact-to-dimension relationships
+
 ### Analytics
-- Aggregations
+
+- SQL aggregations
+- CTEs
 - Subqueries
-- Common Table Expressions
 - Window functions
 - Ranking
-- Department-level analysis
-
----
-
-## Example Pipeline Result
-
-The pipeline produces two primary datasets:
-
-```text
-                    Raw Employee Data
-                           │
-                           ▼
-                    Pandas ETL Pipeline
-                           │
-                  ┌────────┴────────┐
-                  ▼                 ▼
-             Valid Records      Invalid Records
-                  │                 │
-                  ▼                 ▼
-           cleaned.csv         rejected.csv
-                  │
-                  ▼
-             PostgreSQL
-                  │
-                  ▼
-             SQL Analysis
-                  │
-                  ▼
-          Analysis Results
-```
-
----
-
-## Project Goal
-
-The goal of this project is to demonstrate how raw, potentially unreliable data can be transformed into **clean, validated and analysis-ready data** through an end-to-end ETL workflow.
-
-The project focuses on practical data engineering skills rather than simply performing individual data analysis tasks.
+- DAX measures
+- Power BI dashboard development
 
 ---
 
 ## Future Improvements
 
-Possible future extensions include:
-
-- Automated scheduling using Airflow
-- Cloud-based data storage
+- Airflow pipeline orchestration
 - Incremental data loading
-- Automated data-quality tests
+- Automated data-quality testing
 - Unit testing
-- Containerization with Docker
-- Cloud deployment
+- Docker containerization
+- AWS cloud deployment
+- Automated Power BI dataset refresh
 
 ---
 
 ## Skills Demonstrated
 
-- Python
-- Pandas
-- ETL Pipelines
-- Data Cleaning
-- Data Validation
-- Data Quality
-- PostgreSQL
-- SQL
-- Window Functions
-- Common Table Expressions
-- Database Loading
-- Logging
-- Git & GitHub
-- Analytical Reporting
+Python • Pandas • ETL • Data Cleaning • Data Validation • Data Quality • PostgreSQL • SQL • CTEs • Window Functions • Data Modeling • Star Schema • Surrogate Keys • Power Query • DAX • Power BI • Git & GitHub • Logging • Analytical Reporting
 
 ---
 
